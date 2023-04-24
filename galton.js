@@ -7,12 +7,12 @@ let height = 700;
 let x0 = x_start = width / 2;
 
 // ball properties
-const ballRadius = size = 5;
+const ballRadius = size = 4;
 let y_start = 0;
 let y_peg_start = 50;
 let gap_between_pegs_and_buckets = ballRadius * 2;
 let generation_speed = 20;
-let nBalls = _total = 500;
+let nBalls = _total = 900;
 
 // peg board properties
 let rows = 18;
@@ -20,7 +20,7 @@ let pegGap = 6.5 * ballRadius;
 let pegRadius = 0.5 * ballRadius;
 let xGap = pegGap;
 let yGap = 0.6 * xGap;
-let pegAngle = -Math.PI / 4;
+let pegAngle = 0; // Math.PI / 4;
 
 // funnel properties
 const funnelTostartGap = -yGap * 0.5;
@@ -29,11 +29,13 @@ const funnelAngle = Math.PI / 3;
 const funnelOpening = 5 * ballRadius;
 
 // physics properties
-let restitution = 0.5;
-let friction = 0.05;
-let frictionAir = 0.05;
+let restitution = 0.6;
+let friction = 0.01;
+let frictionAir = 0.048;
 let frictionStatic = 0;
 
+
+// for the norml curve
 
 let intervalId;
 
@@ -45,6 +47,8 @@ var {Engine, Render, Runner,
 
 let engine, render, runner, world;
 
+
+
 function initialize() {
     // create engine
     engine = Engine.create({
@@ -54,7 +58,7 @@ function initialize() {
     
     // create renderer
     render = Render.create({
-        element: document.getElementById("container"),
+        element: document.getElementById("board"),
         engine: engine,
         options: {
             width: width,
@@ -73,7 +77,10 @@ function initialize() {
     runner = Runner.create();
     Runner.run(runner, engine);
     render.canvas.addEventListener("mousedown", reset);
+    render.canvas.position = "absolute";
 }
+
+
 
 // Create top funnel
 let leftBumper_x =  x_start - (funnelWallLength * Math.cos(funnelAngle) + funnelOpening) / 2;
@@ -111,13 +118,13 @@ function make_balls() {
     intervalId = setInterval(() => {
         let balls = [];
         if (total-- > 0) {
-            const circle = Bodies.circle(x0 + (-0.5 + Math.random()) * 6, -20, size, {
+            const circle = Bodies.circle(x0 + (-0.5 + Math.random()) * 1, -20, size, {
                 label: "circle",
-                friction: 0.01,
+                friction: 0.001,
                 restitution,
                 // mass: 0.1,
-                slop: 0,
-                density: 0.0001,
+                slop: 0.05,
+                density: 0.1,
                 frictionAir,
                 sleepThreshold: Infinity,
                 render: {
@@ -141,25 +148,13 @@ const makeStaticInterval = setInterval(() => {
     existingBalls().forEach(function(ball) {
       let ballHeight = ball.position.y;
       let ballSpeed = ball.speed;
-      let minHeight = 400; // height - (floorHeight + wallHeight);
+      let minHeight = 350; // height - (floorHeight + wallHeight);
       if (ballHeight > minHeight && ballSpeed < 0.02) {
-        ball.render.opacity = 0.5;
+        // ball.render.opacity = 0.5;
         Body.setStatic(ball, true);
       }
     });
   }, 200);
-
-//   const makeStaticMopUp = setTimeout(() => {
-//     existingBalls().forEach(function(ball) {
-//       let ballHeight = ball.position.y;
-//       let ballSpeed = ball.speed;
-//       let minHeight = height - (floorHeight + wallHeight);
-//       if (ballHeight > minHeight) {
-//         Composite.remove(world, ball);
-//         // Body.set(ball, { isStatic: true });
-//       }
-//     });
-//   }, 20000);
 
 
 function make_pegs() {
@@ -170,13 +165,13 @@ function make_pegs() {
     for (i = 0; i < rows; i++) {
         for (j = 1; j < i; j++) {
             pegs.push(
-                Bodies.rectangle(
-                // Bodies.circle(
+                // Bodies.rectangle(
+                Bodies.circle(
                     x_start + (j * xGap - i * (xGap / 2)),
                     y_peg_start + i * yGap,
-                    // ballRadius * 0.5,
-                    ballRadius,
-                    2,
+                    ballRadius * 0.5,
+                    // ballRadius * 1.2,
+                    // 2,
                     {
                         angle: pegAngle,
                         isStatic: true,
@@ -235,6 +230,33 @@ function make_pegs() {
     World.add(world, pegs);
 }
 
+const canvas = d3.select("#overlay")
+.append("canvas")
+.attr("id", "overlay")
+.attr("position", "absolute")
+.attr("width", width)
+.attr("height", height);
+
+const ctx = canvas.node().getContext('2d');
+canvas.on("mousedown", reset);
+
+function drawNormalDistribution() {
+
+    ctx.strokeStyle = 'red';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(0, height);
+
+    var values = jStat(-4, 4, 210)[0]
+    for (var i in values) {
+        let value = values[i];
+        let density = jStat.normal.pdf(value, 0, 0.9);
+        ctx.lineTo((value + 4)*(width/8), height-(density*810));
+        ctx.stroke();
+    }
+
+}
+
 function reset() {
     Composite.clear(world);
     Engine.clear(engine);
@@ -250,6 +272,7 @@ function reset() {
     make_pegs();
     make_balls();
     createFunnel();
+    drawNormalDistribution();
 }
 
 
@@ -259,3 +282,5 @@ initialize();
 make_pegs();
 make_balls();
 createFunnel();
+drawNormalDistribution();
+
