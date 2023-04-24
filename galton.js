@@ -26,16 +26,14 @@ let pegAngle = 0; // Math.PI / 4;
 const funnelTostartGap = -yGap * 0.5;
 const funnelWallLength = 600;
 const funnelAngle = Math.PI / 3;
-const funnelOpening = 5 * ballRadius;
+const funnelOpening = 4 * ballRadius;
 
 // physics properties
-let restitution = 0.6;
-let friction = 0.01;
-let frictionAir = 0.048;
+let restitution = 0.3;
+let friction = 0.05;
+let frictionAir = 0.045;
 let frictionStatic = 0;
 
-
-// for the norml curve
 
 let intervalId;
 
