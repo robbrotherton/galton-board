@@ -12,10 +12,12 @@ let y_start = 0;
 let y_peg_start = 50;
 let gap_between_pegs_and_buckets = ballRadius * 2;
 let generation_speed = 20;
-let nBalls = _total = 900;
+let nBalls = _total = 800;
+let mass = 100;
+let density = 1;
 
 // peg board properties
-let rows = 18;
+let rows = 20;
 let pegGap = 6.5 * ballRadius;
 let pegRadius = 0.5 * ballRadius;
 let xGap = pegGap;
@@ -29,8 +31,8 @@ const funnelAngle = Math.PI / 3;
 const funnelOpening = 4 * ballRadius;
 
 // physics properties
-let restitution = 0.3;
-let friction = 0.05;
+let restitution = 0.5;
+let friction = 0.01;
 let frictionAir = 0.045;
 let frictionStatic = 0;
 
@@ -120,9 +122,9 @@ function make_balls() {
                 label: "circle",
                 friction: 0.001,
                 restitution,
-                // mass: 0.1,
+                mass,
                 slop: 0.05,
-                density: 0.1,
+                density,
                 frictionAir,
                 sleepThreshold: Infinity,
                 render: {
@@ -249,7 +251,7 @@ function drawNormalDistribution() {
     for (var i in values) {
         let value = values[i];
         let density = jStat.normal.pdf(value, 0, 0.9);
-        ctx.lineTo((value + 4)*(width/8), height-(density*810));
+        ctx.lineTo((value + 4)*(width/8), height-(density*740));
         ctx.stroke();
     }
 
